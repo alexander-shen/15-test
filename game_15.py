@@ -190,7 +190,7 @@ def seq_move_empty_to(c):
 # reverting a sequence of empty cell moves (ordering and direction reversed)
 def seq_move_empty_rev(seq):
   map_moves = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
-  return [map_moves[seq[-1-i]] for i in range(len(seq))]
+  return [map_moves[seq[-i-1]] for i in range(len(seq))]
 
 # sequence of empty cell moves that creates a positive direction 3-cycle of *
 #   *     *
