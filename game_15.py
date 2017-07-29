@@ -121,20 +121,15 @@ def move_empty(dir, position):
 
 # move a given piece into the neighbor empty cell
 # returns new position
-def move_piece(piece,position):
-  empty_index=inverse(position)[0]
-  (row_empty,col_empty)=loc(empty_index)
-  piece_index=inverse(position)[piece]
-  (row_piece,col_piece)=loc(piece_index)
-  if (row_piece==row_empty) and (col_piece==col_empty+1):
-     return move_empty("R",position)
-  if (row_piece==row_empty+1) and (col_piece==col_empty):
-    return move_empty("D",position)
-  if (row_piece==row_empty) and (col_piece==col_empty-1):
-    return move_empty("L",position)
-  if (row_piece==row_empty-1) and (col_piece==col_empty):
-    return move_empty("U",position)
-  assert False # given piece is not near the empty cell
+def move_piece(piece, position):
+  row_empty, col_empty = loc(inverse(position)[0])
+  row_piece, col_piece = loc(inverse(position)[piece])
+  dir = ("R" if row_piece == row_empty and col_piece == col_empty+1
+    else "D" if row_piece == row_empty+1 and col_piece == col_empty
+    else "L" if row_piece == row_empty and col_piece == col_empty-1
+    else "U")
+  assert abs(row_piece - row_empty) + abs(col_piece - col_empty) == 1 # piece is near empty cell
+  return move_empty(dir, position)
 
 # applying a sequence of moves (given by piece labels) to a position
 # returns the new position
