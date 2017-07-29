@@ -1,12 +1,11 @@
 # permutation: [a[1],...,a[k]] where {a[1],..,a[k]}={0,1,2,...,k-1}
 
 # is a permutation
-def is_perm (perm):
-  k=len(perm)
-  return (frozenset(perm)==frozenset(range(k)))
+def is_perm(perm):
+  return frozenset(perm) == frozenset(range(len(perm)))
 
 # identity permutation
-def id(k):
+def perm_id(k):
   return list(range(k))
 
 # product of two permutations
@@ -18,44 +17,36 @@ def prod(first,second):
 
 # trans(i,j,n): permutation of length n exchanging i and j
 def trans(i,j,n):
-  assert (0<=i)
-  assert (i<n)
-  assert (0<=j)
-  assert (j<n)
-  assert (i!=j)
-  ans=id(n)
+  assert 0 <= i < n and 0 <= j < n and i != j
+  ans=perm_id(n)
   ans[i], ans[j] = ans[j], ans[i]
   return ans
 
-# even(perm): perm is an even permutation
-def even(perm):
+# is_even(perm): perm is an even permutation
+def is_even(perm):
   assert (is_perm(perm))
-  n=len(perm)
-  ans= True
-  p=perm[:] # hack to make a copy
+  n = len(perm)
+  ans = True
+  p = perm[:] # hack to make a copy
   # counting transpositions needed to sort perm
-  i= 0
   # i minimal elements of perm are in the right places
-  while (i!=n):
-    j=i+1
-    minpos=i
+  for i in range(n):
+    minpos = i
     # p[minpos]==minimal among p[i..j)
-    while (j!=n):
+    for j in range(i+1, n):
       if p[j] < p[minpos]:
-        minpos= j
-      j=j+1
+        minpos = j
     # p[minpos]==minimal among p[i..n)
-    if i!=minpos:
-      ans=not ans
-      p[i],p[minpos]=p[minpos],p[i]
-    i=i+1
-  return(ans)
+    if i != minpos:
+      ans = not ans
+      p[i], p[minpos] = p[minpos], p[i]
+  return ans
 
-# reverse permutation
-def rev(perm):
+# inverse permutation
+def inverse(perm):
   assert is_perm(perm)
   n=len(perm)
-  ans=id(n)
+  ans=perm_id(n)
   for i in range(n):
     ans[perm[i]]=i
   return ans
@@ -63,11 +54,10 @@ def rev(perm):
 # position: sequence of different objects
 
 # apply permutation to the position (move place i to perm[i])
-def apply (perm,pos):
+def apply(perm, pos):
   assert is_perm(perm)
-  n = len(perm)
-  assert n==len(pos)
-  return [pos[rev(perm)[i]] for i in range(n)]
+  assert len(perm) == len(pos)
+  return [pos[inverse(perm)[i]] for i in range(len(perm))]
 
 # board size (Python allows accessing global variable N if it is
 # not changed inside the functions)
@@ -82,14 +72,14 @@ N=4
 # conversion between 2D coordinate (location) and 1D coordinate (index)
 def loc(index):
   assert 0<=index
-  assert index < N*N
+  assert index < N**2
   return (index//N, index%N)
 def index(loc):
-  (row,col)=loc
-  return N*row+col
+  row, col = loc
+  return N*row + col
 def good_cell(loc):
-  (row,col)= loc;
-  return (0<=row) and (row<N) and (0<=col) and (col<N)
+  row, col = loc
+  return 0 <= row < N and 0 <= col < N
 
 
 # technical: printing without newline
@@ -111,47 +101,35 @@ def print_game_pos(position):
      print ("")
 
 def init_game_pos():
-  return [(i+1)%(N*N) for i in range(N*N)]
+  return [(i+1)%(N**2) for i in range(N**2)]
 
 # making moves in the position
 
 # move empty cell in a given direction dir  = "U", "D", "L", "R"
 # up, down, left, right
 # returns the new position
-def move_empty(dir,position):
-  empty_index=rev(position)[0]
-  (row,col)=loc(empty_index)
-  if dir=="U":
-    assert (row > 0)
-    return apply (trans(empty_index,index((row-1,col)),N*N),position)
-  elif dir=="R":
-    assert (col < N-1)
-    return apply (trans(empty_index,index((row,col+1)),N*N),position)
-  elif dir=="D":
-    assert (row < N-1)
-    return apply (trans(empty_index,index((row+1,col)),N*N),position)
-  elif dir=="L":
-    assert (col > 0)
-    return apply (trans(empty_index,index((row,col-1)),N*N),position)
-  else:
-    assert False
+def move_empty(dir, position):
+  empty_index = inverse(position)[0]
+  row, col = loc(empty_index)
+  dir = ((-1, 0) if dir == "U"
+    else (0, 1) if dir == "R"
+    else (1, 0) if dir == "D"
+    else (0, -1))
+  move_loc = (row+dir[0], col+dir[1])
+  assert 0 <= move_loc[0] < N and 0 <= move_loc[1] < N
+  return apply(trans(empty_index, index(move_loc), N**2), position)
 
 # move a given piece into the neighbor empty cell
 # returns new position
-def move_piece(piece,position):
-  empty_index=rev(position)[0]
-  (row_empty,col_empty)=loc(empty_index)
-  piece_index=rev(position)[piece]
-  (row_piece,col_piece)=loc(piece_index)
-  if (row_piece==row_empty) and (col_piece==col_empty+1):
-     return move_empty("R",position)
-  if (row_piece==row_empty+1) and (col_piece==col_empty):
-    return move_empty("D",position)
-  if (row_piece==row_empty) and (col_piece==col_empty-1):
-    return move_empty("L",position)
-  if (row_piece==row_empty-1) and (col_piece==col_empty):
-    return move_empty("U",position)
-  assert False # given piece is not near the empty cell
+def move_piece(piece, position):
+  row_empty, col_empty = loc(inverse(position)[0])
+  row_piece, col_piece = loc(inverse(position)[piece])
+  dir = ("R" if row_piece == row_empty and col_piece == col_empty+1
+    else "D" if row_piece == row_empty+1 and col_piece == col_empty
+    else "L" if row_piece == row_empty and col_piece == col_empty-1
+    else "U")
+  assert abs(row_piece - row_empty) + abs(col_piece - col_empty) == 1 # piece is near empty cell
+  return move_empty(dir, position)
 
 # applying a sequence of moves (given by piece labels) to a position
 # returns the new position
@@ -170,7 +148,7 @@ def seq_move_empty (sequence,position):
   return tmp
 
 # apply a sequence of moves (given by the directions for the empty cell)
-# (assuming the initially the empty cell is at the standard place)
+# (assuming that initially the empty cell is at the standard place)
 # to a given cell
 def trace(sequence,cell):
   (empty_row,empty_col)=(N-1,N-1)
@@ -211,20 +189,8 @@ def seq_move_empty_to(c):
 
 # reverting a sequence of empty cell moves (ordering and direction reversed)
 def seq_move_empty_rev(seq):
-  k=len(seq)
-  ans = list(range(k)) # creating list of required length
-  for i in range(k):
-    if seq[k-1-i]=="U":
-      ans[i]= "D"
-    elif seq[k-1-i]=="L":
-      ans[i]= "R"
-    elif seq[k-1-i]=="R":
-      ans[i]= "L"
-    elif seq[k-1-i]=="D":
-      ans[i]= "U"
-    else:
-      assert False
-  return(ans)
+  map_moves = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
+  return [map_moves[seq[-i-1]] for i in range(len(seq))]
 
 # sequence of empty cell moves that creates a positive direction 3-cycle of *
 #   *     *
@@ -378,11 +344,11 @@ def seq_sort(pos):
   for i in range(1,N*N-2):
     # pieces with labels <i are on the right places
     curpos=seq_move_empty(seq,pos)
-    loc_i=loc(rev(curpos)[i]) # where i is
+    loc_i=loc(inverse(curpos)[i]) # where i is
     dest_i=loc(i-1)        # where i should be
     if dest_i != loc_i:
-      tmploca=loc(rev(curpos)[i+1])
-      tmplocb=loc(rev(curpos)[i+2])
+      tmploca=loc(inverse(curpos)[i+1])
+      tmplocb=loc(inverse(curpos)[i+2])
       # one of them can coincide with dest_i
       if tmploca!=dest_i:
         seq=seq+seq_3_gen_cycle(dest_i,loc_i,tmploca)
@@ -418,15 +384,15 @@ def solvable(pos):
   assert is_perm(pos)
   assert pos[N*N-1]==0
   if N%2==0:
-    return not even(pos)
+    return not is_even(pos)
   else:
-    return even(pos)
+    return is_even(pos)
 
 # compress the answer sequence (optional)
 def compress(seq):
   ans=[]
   for i in seq:
-    if len(ans)>0 and i==ans[len(ans)-1]:
+    if len(ans)>0 and i==ans[-1]:
       ans.pop()
     else:
       ans=ans+[i]
