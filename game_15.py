@@ -148,7 +148,7 @@ def seq_move_empty (sequence,position):
   return tmp
 
 # apply a sequence of moves (given by the directions for the empty cell)
-# (assuming the initially the empty cell is at the standard place)
+# (assuming that initially the empty cell is at the standard place)
 # to a given cell
 def trace(sequence,cell):
   (empty_row,empty_col)=(N-1,N-1)
@@ -189,20 +189,8 @@ def seq_move_empty_to(c):
 
 # reverting a sequence of empty cell moves (ordering and direction reversed)
 def seq_move_empty_rev(seq):
-  k=len(seq)
-  ans = list(range(k)) # creating list of required length
-  for i in range(k):
-    if seq[k-1-i]=="U":
-      ans[i]= "D"
-    elif seq[k-1-i]=="L":
-      ans[i]= "R"
-    elif seq[k-1-i]=="R":
-      ans[i]= "L"
-    elif seq[k-1-i]=="D":
-      ans[i]= "U"
-    else:
-      assert False
-  return(ans)
+  map_moves = {'U': 'D', 'D': 'U', 'L': 'R', 'R': 'L'}
+  return [map_moves[seq[-1-i]] for i in range(len(seq))]
 
 # sequence of empty cell moves that creates a positive direction 3-cycle of *
 #   *     *
