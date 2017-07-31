@@ -398,11 +398,18 @@ def compress(seq):
       ans=ans+[i]
   return(ans)
 
-position=[2,4,6,12,1,5,8,3,9,10,15,11,13,14,7,0]
-print_game_pos(position)
-print (solvable(position))
-seq=seq_labels_sort(position)
-#seq=compress(seq)
-print (seq)
-print ("length: ", len(seq))
-print_game_pos(seq_move_piece(seq,position))
+
+# --------------------------------------------------------------------------
+# ## Test
+# --------------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+  position=[2,4,6,12,1,5,8,3,9,10,15,11,13,14,7,0]
+  print_game_pos(position)
+  print (solvable(position))
+  seq=seq_labels_sort(position)
+  #seq=compress(seq)
+  print (seq)
+  print ("length: ", len(seq))
+  print_game_pos(seq_move_piece(seq,position))
